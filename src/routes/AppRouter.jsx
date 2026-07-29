@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import FeedPage from '../features/feed/FeedPage';
+import CreatePostPage from '../features/post/CreatePostPage';
 import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
 
@@ -30,6 +31,14 @@ export default function AppRouter() {
           element={
             <ProtectedRoute>
               <FeedPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create"
+          element={
+            <ProtectedRoute>
+              <CreatePostPage />
             </ProtectedRoute>
           }
         />

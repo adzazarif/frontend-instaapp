@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, User, LogOut } from 'lucide-react';
+import { Home, Search, User, LogOut, PlusSquare } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthContext } from '../../context/AuthContext';
 import { logoutUser } from '../../api/authApi';
@@ -21,6 +21,7 @@ export default function Sidebar() {
   const navItems = [
     { label: 'Home', icon: Home, path: '/' },
     { label: 'Search', icon: Search, path: '/search' },
+    { label: 'Create', icon: PlusSquare, path: '/create' },
     { label: 'Profile', icon: User, path: `/profile/${currentUser?.username || ''}` },
   ];
 
