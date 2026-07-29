@@ -2,6 +2,8 @@ import axiosClient from './axiosClient';
 
 export const getFeed = (page = 1) => axiosClient.get('/posts', { params: { page } });
 
+export const getMyPosts = (page = 1) => axiosClient.get('/posts/my', { params: { page } });
+
 export const getPost = (postId) => axiosClient.get(`/posts/${postId}`);
 
 export const createPost = (formData) => 

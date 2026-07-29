@@ -3,6 +3,8 @@ import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import FeedPage from '../features/feed/FeedPage';
 import CreatePostPage from '../features/post/CreatePostPage';
+import PostDetailPage from '../features/post/PostDetailPage';
+import ProfilePage from '../features/profile/ProfilePage';
 import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
 
@@ -39,6 +41,22 @@ export default function AppRouter() {
           element={
             <ProtectedRoute>
               <CreatePostPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/:username"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/post/:id"
+          element={
+            <ProtectedRoute>
+              <PostDetailPage />
             </ProtectedRoute>
           }
         />

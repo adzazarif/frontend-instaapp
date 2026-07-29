@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import clsx from 'clsx';
 import { useLike } from '../../hooks/useLike';
@@ -20,6 +20,21 @@ export default function PostCard({ post }) {
 
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
+  
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleToggleComments = () => {
     if (!showComments && !hasFetched) {
@@ -69,9 +84,28 @@ export default function PostCard({ post }) {
             {post.location && <span className="text-[12px] text-zinc-500 leading-tight">{post.location}</span>}
           </div>
         </div>
-        <button className="text-zinc-800 p-1 hover:text-zinc-500 transition-colors">
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
+        <div className="relative" ref={menuRef}>
+          <button 
+            onClick={() => setShowMenu(!showMenu)}
+            className="text-zinc-800 p-1 hover:text-zinc-500 transition-colors"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
+          
+          {showMenu && (
+            <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.1)] border border-gray-100 py-1 z-50 flex flex-col overflow-hidden">
+              <button className="px-4 py-2.5 text-left text-[14px] text-black hover:bg-zinc-50 transition-colors">
+                Edit
+              </button>
+              <button className="px-4 py-2.5 text-left text-[14px] text-black hover:bg-zinc-50 transition-colors">
+                Archive
+              </button>
+              <button className="px-4 py-2.5 text-left text-[14px] text-red-500 hover:bg-red-50 font-bold border-t border-gray-50 transition-colors">
+                Hapus
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Image Slider */}
