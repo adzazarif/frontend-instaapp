@@ -1,37 +1,28 @@
+import MainLayout from '../../components/layout/MainLayout';
+import StoryBar from '../../components/story/StoryBar';
+import PostList from '../../components/post/PostList';
 import { useAuthContext } from '../../context/AuthContext';
-import { LogOut } from 'lucide-react';
-import { logoutUser } from '../../api/authApi';
 
 export default function FeedPage() {
-  const { currentUser, logout } = useAuthContext();
-
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-      logout();
-    } catch (error) {
-      console.error('Logout failed', error);
-      // Even if API fails, clear local state
-      logout();
-    }
-  };
+  const { currentUser } = useAuthContext();
 
   return (
-    <div className="min-h-screen bg-zinc-50 p-4">
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-black">Feed</h1>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-black transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
-        </div>
-        <p className="text-gray-700 mb-4">Welcome back, {currentUser?.name} (@{currentUser?.username})!</p>
-        <p className="text-sm text-gray-500">This is a placeholder for the Feed page.</p>
+    <MainLayout>
+      {/* Greeting (Optional, but kept for context) */}
+      <div className="px-4 py-4 md:py-6 bg-white border-b border-gray-100 hidden md:block">
+        <h2 className="text-xl font-bold text-black tracking-tight">
+          Welcome back, {currentUser?.name || 'User'}!
+        </h2>
+        <p className="text-zinc-500 text-sm">Here's what your friends are up to today.</p>
       </div>
-    </div>
+
+      {/* Story Bar Section */}
+      <StoryBar />
+
+      {/* Posts Section */}
+      <div className="py-6">
+        <PostList />
+      </div>
+    </MainLayout>
   );
 }
