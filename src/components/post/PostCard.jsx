@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import clsx from 'clsx';
 import { useLike } from '../../hooks/useLike';
 import { useComments } from '../../hooks/useComments';
 import { useAuthContext } from '../../context/AuthContext';
+import { deletePost } from '../../api/postApi';
 
 export default function PostCard({ post }) {
   const { currentUser } = useAuthContext();
+  const navigate = useNavigate();
+  const isOwner = currentUser?.username === post.user.username;
   const { isLiked, likeCount, toggleLike, isLoading: isLikeLoading } = useLike(post);
   const {
     comments,
@@ -20,8 +24,10 @@ export default function PostCard({ post }) {
 
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
-  
+
   const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -57,6 +63,20 @@ export default function PostCard({ post }) {
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await deletePost(post.id);
+      // Reload page to reflect deletion if we don't have local state management for Feed
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to delete post:', error);
+      alert('Failed to delete post.');
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const nextImage = () => {
@@ -85,24 +105,41 @@ export default function PostCard({ post }) {
           </div>
         </div>
         <div className="relative" ref={menuRef}>
-          <button 
-            onClick={() => setShowMenu(!showMenu)}
-            className="text-zinc-800 p-1 hover:text-zinc-500 transition-colors"
-          >
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
-          
+
+          {isOwner && (
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="text-zinc-800 p-1 hover:text-zinc-500 transition-colors"
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+          )}
+
           {showMenu && (
             <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.1)] border border-gray-100 py-1 z-50 flex flex-col overflow-hidden">
-              <button className="px-4 py-2.5 text-left text-[14px] text-black hover:bg-zinc-50 transition-colors">
-                Edit
-              </button>
-              <button className="px-4 py-2.5 text-left text-[14px] text-black hover:bg-zinc-50 transition-colors">
-                Archive
-              </button>
-              <button className="px-4 py-2.5 text-left text-[14px] text-red-500 hover:bg-red-50 font-bold border-t border-gray-50 transition-colors">
-                Hapus
-              </button>
+              {isOwner && (
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    navigate(`/post/${post.id}/edit`);
+                  }}
+                  className="px-4 py-2.5 text-left text-[14px] text-black hover:bg-zinc-50 transition-colors"
+                >
+                  Edit
+                </button>
+              )}
+
+              {isOwner && (
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    setShowDeleteModal(true);
+                  }}
+                  className="px-4 py-2.5 text-left text-[14px] text-red-500 hover:bg-red-50 font-bold border-t border-gray-50 transition-colors"
+                >
+                  Hapus
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -244,6 +281,41 @@ export default function PostCard({ post }) {
           {isSubmitting ? 'Posting...' : 'Post'}
         </button>
       </form>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col">
+            <div className="p-6 text-center">
+              <h3 className="text-xl font-bold text-black mb-2">Hapus Postingan?</h3>
+              <p className="text-sm text-zinc-500">
+                Apakah Anda yakin ingin menghapus postingan ini? Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+
+            <div className="flex flex-col border-t border-gray-100">
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="py-3.5 text-red-500 font-bold hover:bg-zinc-50 transition-colors disabled:opacity-50 flex items-center justify-center"
+              >
+                {isDeleting ? (
+                  <span className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  'Hapus'
+                )}
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="py-3.5 text-black hover:bg-zinc-50 border-t border-gray-100 transition-colors disabled:opacity-50"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   );
 }

@@ -3,6 +3,7 @@ import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import FeedPage from '../features/feed/FeedPage';
 import CreatePostPage from '../features/post/CreatePostPage';
+import EditPostPage from '../features/post/EditPostPage';
 import PostDetailPage from '../features/post/PostDetailPage';
 import ProfilePage from '../features/profile/ProfilePage';
 import SearchPage from '../features/search/SearchPage';
@@ -58,6 +59,14 @@ export default function AppRouter() {
           element={
             <ProtectedRoute>
               <PostDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/post/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditPostPage />
             </ProtectedRoute>
           }
         />
