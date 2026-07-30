@@ -1,11 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import { useLike } from '../../hooks/useLike';
 import { useComments } from '../../hooks/useComments';
 import { useAuthContext } from '../../context/AuthContext';
 import { deletePost } from '../../api/postApi';
+
+function timeAgo(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+
+  if (seconds < 60) return `${seconds} detik yang lalu`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} menit yang lalu`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} jam yang lalu`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} hari yang lalu`;
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 export default function PostCard({ post }) {
   const { currentUser } = useAuthContext();
@@ -19,7 +36,8 @@ export default function PostCard({ post }) {
     isSubmitting,
     hasFetched,
     fetchComments,
-    submitComment
+    submitComment,
+    removeComment
   } = useComments(post.id, post.commentCount);
 
   const [showComments, setShowComments] = useState(false);
@@ -88,20 +106,20 @@ export default function PostCard({ post }) {
   };
 
   return (
-    <article className="border-b border-gray-100 bg-white pb-6 pt-2 last:border-b-0">
+    <article className="bg-white sm:border sm:border-gray-200 sm:rounded-xl sm:shadow-[0_2px_8px_rgba(0,0,0,0.04)] sm:mb-8 mb-2 pb-5 pt-1 overflow-visible border-b border-gray-100 transition-all">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3 sm:py-3.5">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-zinc-200 overflow-hidden cursor-pointer border border-gray-100">
+          <div className="w-9 h-9 rounded-full bg-zinc-200 overflow-hidden cursor-pointer border border-gray-100 ring-2 ring-transparent hover:ring-zinc-200 transition-all">
             {post.user.avatar ? (
               <img src={post.user.avatar} className="w-full h-full object-cover" alt={post.user.username} />
             ) : null}
           </div>
-          <div className="flex flex-col">
-            <span className="text-[14px] font-semibold text-black cursor-pointer hover:text-zinc-600 transition-colors leading-tight">
+          <div className="flex flex-col justify-center">
+            <span className="text-[14.5px] font-bold text-zinc-900 cursor-pointer hover:text-zinc-500 transition-colors tracking-tight leading-tight">
               {post.user.username}
             </span>
-            {post.location && <span className="text-[12px] text-zinc-500 leading-tight">{post.location}</span>}
+            {post.location && <span className="text-[12px] text-zinc-500 leading-tight mt-0.5">{post.location}</span>}
           </div>
         </div>
         <div className="relative" ref={menuRef}>
@@ -109,7 +127,7 @@ export default function PostCard({ post }) {
           {isOwner && (
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="text-zinc-800 p-1 hover:text-zinc-500 transition-colors"
+              className="text-zinc-600 p-1.5 rounded-full hover:bg-zinc-100 hover:text-black transition-colors"
             >
               <MoreHorizontal className="w-5 h-5" />
             </button>
@@ -202,33 +220,33 @@ export default function PostCard({ post }) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-5">
+      <div className="flex items-center justify-between px-4 py-3 sm:py-3.5">
+        <div className="flex items-center gap-4">
           <button
             onClick={toggleLike}
             disabled={isLikeLoading}
-            className="flex items-center gap-1.5 hover:opacity-50 transition-opacity disabled:opacity-50 group"
+            className="flex items-center gap-1.5 hover:opacity-60 transition-all active:scale-90 disabled:opacity-50 group"
           >
-            <Heart className={clsx('w-[26px] h-[26px]', isLiked ? 'fill-red-500 text-red-500' : 'text-zinc-900')} />
-            {likeCount > 0 && <span className="text-[14px] font-bold text-black">{likeCount.toLocaleString()}</span>}
+            <Heart className={clsx('w-6 h-6 transition-colors', isLiked ? 'fill-red-500 text-red-500' : 'text-zinc-900')} strokeWidth={isLiked ? 2 : 2.5} />
+            {likeCount > 0 && <span className="text-[14.5px] font-bold text-black">{likeCount.toLocaleString()}</span>}
           </button>
-          <button onClick={handleToggleComments} className="flex items-center gap-1.5 hover:opacity-50 transition-opacity">
-            <MessageCircle className="w-[26px] h-[26px] text-zinc-900 -scale-x-100" />
-            {commentCount > 0 && <span className="text-[14px] font-bold text-black">{commentCount.toLocaleString()}</span>}
+          <button onClick={handleToggleComments} className="flex items-center gap-1.5 hover:opacity-60 transition-all active:scale-90">
+            <MessageCircle className="w-6 h-6 text-zinc-900 -scale-x-100" strokeWidth={2.5} />
+            {commentCount > 0 && <span className="text-[14.5px] font-bold text-black">{commentCount.toLocaleString()}</span>}
           </button>
-          <button className="hover:opacity-50 transition-opacity">
-            <Send className="w-[26px] h-[26px] text-zinc-900" />
+          <button className="hover:opacity-60 transition-all active:scale-90">
+            <Send className="w-6 h-6 text-zinc-900" strokeWidth={2.5} />
           </button>
         </div>
-        <button className="hover:opacity-50 transition-opacity">
-          <Bookmark className="w-[26px] h-[26px] text-zinc-900" />
+        <button className="hover:opacity-60 transition-all active:scale-90">
+          <Bookmark className="w-6 h-6 text-zinc-900" strokeWidth={2.5} />
         </button>
       </div>
 
       {/* Caption */}
       {post.caption && (
-        <div className="px-4 text-[14px] text-zinc-900 leading-relaxed mb-1">
-          <span className="font-bold mr-2 cursor-pointer hover:text-zinc-600 transition-colors">{post.user.username}</span>
+        <div className="px-4 text-[14.5px] text-zinc-900 leading-relaxed mb-1.5">
+          <span className="font-bold mr-2 cursor-pointer hover:text-zinc-500 transition-colors tracking-tight">{post.user.username}</span>
           {post.caption}
         </div>
       )}
@@ -238,44 +256,68 @@ export default function PostCard({ post }) {
         <div className="px-4 mt-1">
           <button
             onClick={handleToggleComments}
-            className="text-[14px] text-zinc-500 hover:text-zinc-700 transition-colors"
+            className="text-[14.5px] text-zinc-500 hover:text-zinc-400 transition-colors font-medium"
           >
-            {showComments ? 'Hide comments' : 'View comments'}
+            {showComments ? 'Hide comments' : `View all ${commentCount} comments`}
           </button>
         </div>
       )}
 
       {/* Comments List */}
       {showComments && (
-        <div className="px-4 mt-2 space-y-1">
+        <div className="px-4 mt-2 space-y-1.5">
           {isCommentsLoading ? (
             <div className="text-[14px] text-zinc-500">Loading comments...</div>
           ) : (
-            comments.map(comment => (
-              <div key={comment.id} className="text-[14px] text-zinc-900 leading-relaxed">
-                <span className="font-bold mr-2 cursor-pointer hover:text-zinc-600 transition-colors">
-                  {comment.user.username}
-                </span>
-                {comment.content}
-              </div>
-            ))
+            comments.map(comment => {
+              const isCommentOwner = currentUser?.username === comment.user.username;
+              const canDeleteComment = isOwner || isCommentOwner;
+
+              return (
+                <div key={comment.id} className="text-[14.5px] text-zinc-900 leading-relaxed flex items-start justify-between group">
+                  <div>
+                    <span className="font-bold mr-2 cursor-pointer hover:text-zinc-500 transition-colors tracking-tight">
+                      {comment.user.username}
+                    </span>
+                    {comment.content}
+                  </div>
+                  {canDeleteComment && (
+                    <button
+                      onClick={() => removeComment(comment.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-red-500 transition-all shrink-0 ml-4 active:scale-90"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       )}
 
+      {/* Date */}
+      {post.createdAt && (
+        <div className="px-4 mt-2 mb-3">
+          <span className="text-[11px] uppercase text-zinc-500 font-medium tracking-wider">
+            {timeAgo(post.createdAt)}
+          </span>
+        </div>
+      )}
+
       {/* Add comment input */}
-      <form onSubmit={handlePostComment} className="px-4 mt-3 flex items-center border-t border-gray-50 pt-3">
+      <form onSubmit={handlePostComment} className="px-4 mt-1 flex items-center border-t border-gray-100 pt-3 pb-1">
         <input
           type="text"
           placeholder="Add a comment..."
-          className="w-full text-sm outline-none bg-transparent"
+          className="w-full text-[14.5px] outline-none bg-transparent placeholder:text-zinc-500"
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           disabled={isSubmitting}
         />
         <button
           type="submit"
-          className="text-sm font-bold text-black disabled:opacity-50 transition-opacity"
+          className="text-[14px] font-bold text-blue-500 hover:text-blue-700 disabled:text-blue-300 disabled:opacity-50 transition-colors ml-3"
           disabled={!commentText.trim() || isSubmitting}
         >
           {isSubmitting ? 'Posting...' : 'Post'}
