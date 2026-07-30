@@ -5,9 +5,10 @@ import clsx from 'clsx';
 import { useLike } from '../../hooks/useLike';
 import { useComments } from '../../hooks/useComments';
 import { useAuthContext } from '../../context/AuthContext';
-import { deletePost } from '../../api/postApi';
+import { deletePost, archivePost } from '../../api/postApi';
 
 function timeAgo(dateString) {
+  const navigate = useNavigate();
   if (!dateString) return '';
   const date = new Date(dateString);
   const now = new Date();
@@ -95,6 +96,16 @@ export default function PostCard({ post }) {
     }
   };
 
+  const handleArchive = async () => {
+    try {
+      await archivePost(post.id);
+      navigate(`/profile/${currentUser.username}`);
+    } catch (error) {
+      console.error('Failed to archive post:', error);
+      alert('Failed to archive post.');
+    }
+  };
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const nextImage = () => {
@@ -144,6 +155,18 @@ export default function PostCard({ post }) {
                   className="px-4 py-2.5 text-left text-[14px] text-black hover:bg-zinc-50 transition-colors"
                 >
                   Edit
+                </button>
+              )}
+
+              {isOwner && (
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    handleArchive();
+                  }}
+                  className="px-4 py-2.5 text-left text-[14px] text-black hover:bg-zinc-50 transition-colors"
+                >
+                  {post.isArchived ? 'Unarchive' : 'Archive'}
                 </button>
               )}
 

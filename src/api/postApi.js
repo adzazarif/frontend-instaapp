@@ -4,6 +4,8 @@ export const getFeed = (page = 1) => axiosClient.get('/posts', { params: { page 
 
 export const getMyPosts = (page = 1) => axiosClient.get('/posts/my', { params: { page } });
 
+export const getArchivedPosts = (page = 1) => axiosClient.get('/posts/archived', { params: { page } });
+
 export const getPost = (postId) => axiosClient.get(`/posts/${postId}`);
 
 export const createPost = (formData) => 
@@ -14,3 +16,5 @@ export const createPost = (formData) =>
 export const updatePost = (postId, data) => axiosClient.put(`/posts/${postId}`, data);
 
 export const deletePost = (postId) => axiosClient.delete(`/posts/${postId}`);
+
+export const archivePost = (postId) => axiosClient.put(`/posts/${postId}/archive`);

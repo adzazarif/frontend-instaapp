@@ -1,16 +1,18 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layout/MainLayout';
-import { Settings, Grid, Bookmark, UserPlus, Heart, MessageCircle } from 'lucide-react';
+import { Settings, Grid, Bookmark, UserPlus, Heart, MessageCircle, Archive } from 'lucide-react';
 import clsx from 'clsx';
 import { useState } from 'react';
 import { useAuthContext } from '../../context/AuthContext';
 import { useMyPosts } from '../../hooks/useMyPosts';
+import { useArchivedPosts } from '../../hooks/useArchivedPosts';
 
 export default function ProfilePage() {
   const { username } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuthContext();
   const { posts, totalPosts, isLoading } = useMyPosts();
+  const { posts: archivedPosts, isLoading: isArchivedLoading } = useArchivedPosts();
   
   const [activeTab, setActiveTab] = useState('posts');
 
@@ -115,14 +117,14 @@ export default function ProfilePage() {
           
           {isOwnProfile && (
             <button 
-              onClick={() => setActiveTab('saved')}
+              onClick={() => setActiveTab('archived')}
               className={clsx(
                 "flex items-center gap-2 py-4 border-t-2 text-[12px] font-semibold tracking-widest uppercase transition-colors",
-                activeTab === 'saved' ? "border-black text-black" : "border-transparent text-zinc-400 hover:text-zinc-800"
+                activeTab === 'archived' ? "border-black text-black" : "border-transparent text-zinc-400 hover:text-zinc-800"
               )}
             >
-              <Bookmark className="w-4 h-4" />
-              <span className="hidden sm:inline">Saved</span>
+              <Archive className="w-4 h-4" />
+              <span className="hidden sm:inline">Archived</span>
             </button>
           )}
         </div>
@@ -163,15 +165,44 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {activeTab === 'saved' && (
-          <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-            <div className="w-16 h-16 rounded-full border-2 border-black flex items-center justify-center mb-4">
-              <Bookmark className="w-8 h-8" />
-            </div>
-            <h2 className="text-2xl font-bold text-black mb-2">Save</h2>
-            <p className="text-sm text-zinc-500 max-w-sm">
-              Save photos and videos that you want to see again. No one is notified, and only you can see what you've saved.
-            </p>
+        {activeTab === 'archived' && (
+          <div className="pb-10">
+            {isArchivedLoading && archivedPosts.length === 0 ? (
+              <div className="flex justify-center py-20">
+                <span className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></span>
+              </div>
+            ) : archivedPosts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+                <div className="w-16 h-16 rounded-full border-2 border-black flex items-center justify-center mb-4">
+                  <Archive className="w-8 h-8 text-black" />
+                </div>
+                <h2 className="text-2xl font-bold text-black mb-2">No Archived Posts</h2>
+                <p className="text-sm text-zinc-500 max-w-sm">
+                  Posts that you archive will appear here. Only you can see them.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-1 sm:gap-2">
+                {archivedPosts.map((post) => (
+                  <div 
+                    key={post.id} 
+                    onClick={() => navigate(`/post/${post.id}`)}
+                    className="aspect-square bg-zinc-100 overflow-hidden relative group cursor-pointer"
+                  >
+                    {post.images && post.images.length > 0 ? (
+                      <img src={post.images[0]} alt="post" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">No Image</div>
+                    )}
+                    
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white font-bold">
+                      <div className="flex items-center gap-1.5"><Heart className="w-5 h-5 fill-white" /> {post.likeCount}</div>
+                      <div className="flex items-center gap-1.5"><MessageCircle className="w-5 h-5 fill-white" /> {post.commentCount}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
