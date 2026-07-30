@@ -5,6 +5,7 @@ import FeedPage from '../features/feed/FeedPage';
 import CreatePostPage from '../features/post/CreatePostPage';
 import PostDetailPage from '../features/post/PostDetailPage';
 import ProfilePage from '../features/profile/ProfilePage';
+import SearchPage from '../features/search/SearchPage';
 import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
 
@@ -57,6 +58,14 @@ export default function AppRouter() {
           element={
             <ProtectedRoute>
               <PostDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <SearchPage />
             </ProtectedRoute>
           }
         />
