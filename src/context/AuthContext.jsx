@@ -10,16 +10,42 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('accessToken');
-      if (token) {
+      const savedUser = localStorage.getItem('currentUser');
+
+      if (token && savedUser) {
+        // Load instantly from localStorage
+        try {
+          setCurrentUser(JSON.parse(savedUser));
+        } catch (e) {
+          console.error('Failed to parse cached user', e);
+        }
+        setIsInitializing(false); // App renders immediately!
+        
+        // Refresh data in background to keep it up to date and verify token
         try {
           const response = await getCurrentUser();
           setCurrentUser(response.data);
+          localStorage.setItem('currentUser', JSON.stringify(response.data));
+        } catch (error) {
+          console.error('Session expired or invalid token', error);
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('currentUser');
+          setCurrentUser(null);
+        }
+      } else if (token) {
+        // Fallback if no user data is cached but token exists
+        try {
+          const response = await getCurrentUser();
+          setCurrentUser(response.data);
+          localStorage.setItem('currentUser', JSON.stringify(response.data));
         } catch (error) {
           console.error('Failed to initialize auth', error);
           localStorage.removeItem('accessToken');
         }
+        setIsInitializing(false);
+      } else {
+        setIsInitializing(false);
       }
-      setIsInitializing(false);
     };
 
     initAuth();
@@ -27,11 +53,13 @@ export function AuthProvider({ children }) {
 
   const login = (user, accessToken) => {
     localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('currentUser', JSON.stringify(user));
     setCurrentUser(user);
   };
 
   const logout = () => {
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('currentUser');
     setCurrentUser(null);
   };
 
